@@ -1,0 +1,56 @@
+---
+title: "source-code"
+output: html_document
+---
+We've got our data in. Now, we want to manipulate these to end up with two tables. One table with country and total energy consumption; the other with country and renewable energy production
+```{r}
+library(tidyverse)
+library(ggplot2)
+renewablebycountry <- read.csv("countrygeneration.csv")
+consumptionbycountry <-read.csv("countryconsumption.csv")
+
+# This next block of code is focusing on areas of interest (country and total renewable energy produced)
+renewablebycountry <- rename(renewablebycountry, "total" = "Total..TWh.")
+renewablebycountry <- select(renewablebycountry, c("Country", "total"))
+
+# the renewablecountry data is from 2017, so we'll just focus on consumption from 2017
+consumptionbycountry <- filter(consumptionbycountry, Year == 2017)
+# now we want to configure a table based on this data to match the specifications described above
+Country <- colnames(consumptionbycountry) [-1]
+Consumption <- as.numeric(consumptionbycountry) [-1]
+consumptionbycountry <- data.frame(Country, Consumption)
+
+# now we want to merge these together into one table by country
+CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
+ggplot(CountryRel, aes(x=Consumption, y=total)) +
+  geom_point() +
+  geom_text(label=CountryRel$Country)
+CountryRel
+```
+
+```{r}
+#renewable by energy should only have country and Total.TWh
+#renaming for clarity
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
