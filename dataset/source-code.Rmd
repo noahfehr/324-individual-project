@@ -22,16 +22,45 @@ consumptionbycountry <- data.frame(Country, Consumption)
 
 # now we want to merge these together into one table by country
 CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
-ggplot(CountryRel, aes(x=Consumption, y=total)) +
+allCountries <- ggplot(CountryRel, aes(x=Consumption, y=total)) +
+                    geom_point()
+
+nooutliers <- filter(CountryRel, Country != "China" )
+#Remove China (outlier)
+
+noChina <- ggplot(nooutliers, aes(x=Consumption, y=total)) +
   geom_point() +
-  geom_text(label=CountryRel$Country)
-CountryRel
+  geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
 ```
-
 ```{r}
-#renewable by energy should only have country and Total.TWh
-#renaming for clarity
+library(shiny)
+data <- read.csv("yearbyyear.csv")
+data
+lbls <- colnames(data) [-1]
+yeardata <- filter(data, Year == 2016)
+values <- as.numeric(yeardata)
+pie(values, labels = lbls, main="Pie Chart")
+```
+```{r}
 
+ui <- fluidPage(
+  sliderInput(inputId = "year", 
+              label = "Slide to adjust the year", 
+              value = 2015, min = 1997, max = 2017),
+  plotOutput("pie")
+)
+
+server <- function(input, output) {
+  
+  output$pie <- renderPlot({
+    #pie chart
+    yeardata <- filter(data, Year == input$year)
+    values <- as.numeric(yeardata)
+    pie(values, labels = lbls, main="Pie Chart")
+    })
+}
+
+shinyApp(ui = ui, server = server)
 ```
 
 
