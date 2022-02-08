@@ -25,12 +25,15 @@ CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
 allCountries <- ggplot(CountryRel, aes(x=Consumption, y=total)) +
                     geom_point()
 
-nooutliers <- filter(CountryRel, Country != "China" )
-#Remove China (outlier)
+nooutliers <- filter(CountryRel, Country != "China" & Country != "Brazil")
 
+#Remove China (outlier)
+nooutliers
 noChina <- ggplot(nooutliers, aes(x=Consumption, y=total)) +
   geom_point() +
   geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
+
+noChina
 ```
 ```{r}
 library(shiny)
@@ -47,7 +50,9 @@ ui <- fluidPage(
   sliderInput(inputId = "year", 
               label = "Slide to adjust the year", 
               value = 2015, min = 1997, max = 2017),
-  plotOutput("pie")
+  plotOutput("pie"),
+  plotOutput("scatter", hover = hoverOpts("hover_spot")),
+  verbatimTextOutput("info")
 )
 
 server <- function(input, output) {
@@ -58,6 +63,20 @@ server <- function(input, output) {
     values <- as.numeric(yeardata)
     pie(values, labels = lbls, main="Pie Chart")
     })
+  
+  output$scatter <- renderPlot({
+    ggplot(nooutliers, aes(x=Consumption, y=total)) +
+    geom_point() +
+    geom_text(label=nooutliers$Country, nudge_x = 50)
+    })
+  
+  ##Playing around with hovering
+  output$info <- renderText({
+    hover <- input[["hover_spot"]]
+    point <- nearPoints(nooutliers, hover, threshold = 5, maxpoints = 1)
+    if(nrow(point) == 0) return(NULL)
+    paste0(point[["label"]])
+  })
 }
 
 shinyApp(ui = ui, server = server)
