@@ -51,7 +51,7 @@ ui <- fluidPage(
               label = "Slide to adjust the year", 
               value = 2015, min = 1997, max = 2017),
   plotOutput("pie"),
-  plotOutput("scatter", hover = hoverOpts("hover_spot")),
+  plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
 )
 
@@ -66,16 +66,14 @@ server <- function(input, output) {
   
   output$scatter <- renderPlot({
     ggplot(nooutliers, aes(x=Consumption, y=total)) +
-    geom_point() +
-    geom_text(label=nooutliers$Country, nudge_x = 50)
+    geom_point() 
     })
   
-  ##Playing around with hovering
+  ##Playing around with click to display
   output$info <- renderText({
-    hover <- input[["hover_spot"]]
-    point <- nearPoints(nooutliers, hover, threshold = 5, maxpoints = 1)
+    point <- nearPoints(nooutliers, input$plot_click, threshold = 10, maxpoints = 1)
     if(nrow(point) == 0) return(NULL)
-    paste0(point[["label"]])
+    paste0("Country name: ", point$Country)
   })
 }
 
@@ -84,8 +82,7 @@ shinyApp(ui = ui, server = server)
 
 
 ## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+own is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
