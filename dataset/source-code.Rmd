@@ -55,6 +55,7 @@ ui <- fluidPage(
               label = "Slide to adjust the year", 
               value = 2015, min = 1997, max = 2017),
   plotOutput("pie"),
+  plotOutput("bar"),
   plotOutput("line"),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
@@ -72,10 +73,17 @@ server <- function(input, output) {
       select("Year", "Hydro", "Biofuel", "Solar", "Geothermal", "sum") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
-    currentData.long
     ggplot(currentData.long, aes(Year, value, color = variable)) + 
       geom_line()
     
+  })
+  output$bar <- renderPlot({
+    this.data <- filter(data, Year == input$year)
+    this.data.long <- this.data %>%
+      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
+      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+    ggplot(this.data.long, aes(variable, value)) + 
+      geom_bar(stat="identity")
   })
   output$pie <- renderPlot({
     #pie chart
