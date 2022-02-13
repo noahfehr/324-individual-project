@@ -31,7 +31,9 @@ nooutliers <- filter(CountryRel, Country != "China" & Country != "Brazil")
 nooutliers
 noChina <- ggplot(nooutliers, aes(x=Consumption, y=total)) +
   geom_point() +
-  geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
+  xlab("Total Energy Consumption") + 
+  ylab("Total Renewable Energy Production") 
+  #geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
 
 noChina
 ```
