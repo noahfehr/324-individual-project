@@ -40,12 +40,14 @@ noChina
 ```{r}
 library(shiny)
 data <- read.csv("yearbyyear.csv")
-data
+names(data) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
 lbls <- colnames(data) [-1]
-yeardata <- filter(data, Year == 2016)
+names(data)
+yeardata <- filter(data, "Year" == 2016)
 values <- as.numeric(yeardata)
-pie(values, labels = lbls, main="Pie Chart")
+
 ```
+
 ```{r}
 
 ui <- fluidPage(
@@ -53,12 +55,28 @@ ui <- fluidPage(
               label = "Slide to adjust the year", 
               value = 2015, min = 1997, max = 2017),
   plotOutput("pie"),
+  plotOutput("line"),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
 )
 
 server <- function(input, output) {
-  
+  output$line <- renderPlot({
+    #filter the data to only include data from min until value
+    currentData <- filter(data, Year <= input$year)
+    #create an additional variable (total amount)
+    #create an additional variable (total amount)
+    currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
+    #adjusting data so we can plot all different types
+    currentData.long <- currentData %>%
+      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal", "sum") %>%
+      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+    
+    currentData.long
+    ggplot(currentData.long, aes(Year, value, color = variable)) + 
+      geom_line()
+    
+  })
   output$pie <- renderPlot({
     #pie chart
     yeardata <- filter(data, Year == input$year)
