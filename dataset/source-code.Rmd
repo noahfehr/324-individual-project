@@ -57,11 +57,11 @@ value
 ```{r}
 
 ui <- fluidPage(
-  sliderInput(inputId = "year", 
-              label = "Slide to adjust the year", 
-              value = 2015, min = 1997, max = 2017),
-  
+  titlePanel(h1("Exploring Renewable Energy Production from 1997 to 2017", align = "center")),
   fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
+  fluidRow(column(12, align="center", sliderInput(inputId = "year", 
+              label = "Slide to adjust the year", 
+              value = 2015, min = 1997, max = 2017))),
   plotOutput("line"),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
@@ -81,7 +81,7 @@ server <- function(input, output) {
     
     ggplot(currentData.long, aes(Year, value, color = variable)) + 
       geom_line()
-    
+      
   })
   output$bar <- renderPlot({
     this.data <- filter(data, Year == input$year)
@@ -89,8 +89,9 @@ server <- function(input, output) {
       select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
-    ggplot(this.data.long, aes(variable, value)) + 
-      geom_bar(stat="identity")
+    ggplot(this.data.long, aes(variable, value, fill = variable)) + 
+      geom_bar(stat="identity") +
+      scale_color_brewer(palette="Greens")
   })
   output$pie <- renderPlot({
     # referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
