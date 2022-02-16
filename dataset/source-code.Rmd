@@ -91,7 +91,8 @@ server <- function(input, output) {
     
     ggplot(this.data.long, aes(variable, value, fill = variable)) + 
       geom_bar(stat="identity") +
-      scale_color_brewer(palette="Greens")
+      scale_fill_brewer(palette="Greens")
+    #use scale color manual
   })
   output$pie <- renderPlot({
     # referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
@@ -104,7 +105,9 @@ server <- function(input, output) {
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
-        x = "", y = "")
+        x = "", y = "") +
+      scale_fill_brewer(palette="Greens")
+    
     #pie chart
     })
   
