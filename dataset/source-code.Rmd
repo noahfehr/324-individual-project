@@ -79,12 +79,12 @@ ui <- fluidPage(
                              sliderInput(inputId = "year", 
               label = "Slide to adjust the year", 
               value = 2015, min = 1997, max = 2017)),
-                mainPanel("main panel",
+                mainPanel(
                           fluidRow(
                             splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))
                           )
                 )
-  )
+  ) ,
   plotOutput("line"),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
