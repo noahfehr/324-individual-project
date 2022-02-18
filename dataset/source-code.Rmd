@@ -28,67 +28,97 @@ allCountries <- ggplot(CountryRel, aes(x=Consumption, y=total)) +
 nooutliers <- filter(CountryRel, Country != "China" & Country != "Brazil")
 
 #Remove China (outlier)
-nooutliers
 noChina <- ggplot(nooutliers, aes(x=Consumption, y=total)) +
   geom_point() +
   xlab("Total Energy Consumption") + 
   ylab("Total Renewable Energy Production") 
   #geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
-
-noChina
+time <- as.numeric(rep(seq(1,7),each=7))  # x Axis
+value <- runif(49, 10, 100)               # y Axis
+group <- rep(LETTERS[1:7],times=7)        # group, one shape per group
+data <- data.frame(time, value, group)
+data
 ```
 ```{r}
 library(shiny)
 data <- read.csv("yearbyyear.csv")
-names(data)
 names(data) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
 lbls <- colnames(data) [-1]
-data
+
 this.data <- filter(data, Year == 1990)
     this.data.long <- this.data %>%
       select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
-this.data
+
 value <- as.numeric(this.data)[-1]
-value
+currentData <- filter(data, Year <= 2015)
+    #create an additional variable (total amount)
+    #create an additional variable (total amount)
+    #currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
+    #adjusting data so we can plot all different types
+  
+    currentData.long <- currentData %>%
+      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
+      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+   
+    
+    #currentData.long$variable <- factor(data$variable , levels=c("Hydro", "Biofuel", "Solar", "Geothermal"))
+    ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
+      geom_area()
+    
 ```
 
 ```{r}
 
 ui <- fluidPage(
-  titlePanel(h1("Exploring Renewable Energy Production from 1997 to 2017", align = "center")),
-  fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
-  fluidRow(column(12, align="center", sliderInput(inputId = "year", 
+  titlePanel(h1("Exploring Renewable Energy Production from 1997 to 2017", align = "center")), 
+  titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
+  sidebarLayout(position = "left",
+                sidebarPanel("sidebar panel",
+                             sliderInput(inputId = "year", 
               label = "Slide to adjust the year", 
-              value = 2015, min = 1997, max = 2017))),
+              value = 2015, min = 1997, max = 2017)),
+                mainPanel("main panel",
+                          fluidRow(
+                            splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))
+                          )
+                )
+  )
   plotOutput("line"),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
 )
 
 server <- function(input, output) {
+  
   output$line <- renderPlot({
     #filter the data to only include data from min until value
     currentData <- filter(data, Year <= input$year)
     #create an additional variable (total amount)
     #create an additional variable (total amount)
-    currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
+    #currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
     #adjusting data so we can plot all different types
+    
     currentData.long <- currentData %>%
-      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal", "sum") %>%
+      select("Year", "Solar", "Biofuel", "Hydro", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
-    ggplot(currentData.long, aes(Year, value, color = variable)) + 
-      geom_line()
+    currentData.long$variable <- factor(currentData.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
+    ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
+      geom_area() +
+      scale_fill_brewer(palette="Greens")
+    #ggplot(currentData.long, aes(Year, value, color = variable)) + 
+     # geom_line()
       
   })
   output$bar <- renderPlot({
     this.data <- filter(data, Year == input$year)
-    this.data.long <- this.data %>%
+  this.data.long <- this.data %>%
       select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
+  this.data.long$variable <- factor(this.data.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
     ggplot(this.data.long, aes(variable, value, fill = variable)) + 
       geom_bar(stat="identity") +
       scale_fill_brewer(palette="Greens")
@@ -101,6 +131,7 @@ server <- function(input, output) {
       select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
+    this.data.long$variable <- factor(this.data.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
     ggplot(this.data.long, aes(x="", y=value, fill=variable)) +
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
