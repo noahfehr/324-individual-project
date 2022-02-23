@@ -68,49 +68,51 @@ currentData <- filter(data, Year <= 2015)
       geom_area()
     
 ```
-
+TODO: Add variables to axes, add explanation to click on country option, add titles to graphs
 ```{r}
 
 ui <- fluidPage(
   titlePanel(h1("Exploring Renewable Energy Production from 1997 to 2017", align = "center")), 
   titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
+  titlePanel(h4("How has the composition of renewable energy changed over time?", align = "center")),
   sidebarLayout(position = "left",
-                sidebarPanel("sidebar panel",
+                sidebarPanel("Year",
                              sliderInput(inputId = "year", 
-              label = "Slide to adjust the year", 
-              value = 2015, min = 1997, max = 2017)),
-                mainPanel(
-                          fluidRow(
-                            splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))
-                          )
-                )
-  ) ,
-  plotOutput("line"),
+                             label = "Slide to adjust the year", 
+                             sep = "",
+                             value = 2015, min = 1997, max = 2017)),
+                mainPanel()
+  ),
+  fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
+  plotOutput("stacked"),
+  titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
+  titlePanel(h4("Is there a relationship between total energy consumption and renewable energy production? ", align = "center")),
   plotOutput("scatter", click = "plot_click"),
   verbatimTextOutput("info")
 )
 
 server <- function(input, output) {
   
-  output$line <- renderPlot({
-    #filter the data to only include data from min until value
+  output$stacked <- renderPlot({
+    #filter the data to only include data from 1997 (earliest date in the data) until value
     currentData <- filter(data, Year <= input$year)
-    #create an additional variable (total amount)
-    #create an additional variable (total amount)
-    #currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
-    #adjusting data so we can plot all different types
     
+    #Pivot the data longer, such that each row represents the given energy production for a given source for a certain year
     currentData.long <- currentData %>%
       select("Year", "Solar", "Biofuel", "Hydro", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
+    #Order the types of energy appropriately so it is easy to see the growth of all variables
+    #Note that we will maintain this ordering for all of the charts illustrating composition to keep the colors consistent across the board
     currentData.long$variable <- factor(currentData.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
+    
+    #Create the plot
     ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
       geom_area() +
-      scale_fill_brewer(palette="Greens")
-    #ggplot(currentData.long, aes(Year, value, color = variable)) + 
-     # geom_line()
-      
+      scale_fill_brewer(palette="Greens") +
+      labs(title=paste("Renewable Energy Production from 1990 to", input$year, sep=" "),
+           x = "Year",
+           y = "Energy Production (TWh)")
   })
   output$bar <- renderPlot({
     this.data <- filter(data, Year == input$year)
@@ -136,7 +138,7 @@ server <- function(input, output) {
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
-        x = "", y = "") +
+        x = "", y = "Production in TWh") +
       scale_fill_brewer(palette="Greens")
     
     #pie chart
