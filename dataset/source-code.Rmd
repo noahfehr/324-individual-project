@@ -37,38 +37,44 @@ time <- as.numeric(rep(seq(1,7),each=7))  # x Axis
 value <- runif(49, 10, 100)               # y Axis
 group <- rep(LETTERS[1:7],times=7)        # group, one shape per group
 data <- data.frame(time, value, group)
-data
 ```
 ```{r}
+library(tidyverse)
+library(ggplot2)
 library(shiny)
-data <- read.csv("yearbyyear.csv")
-names(data) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
-lbls <- colnames(data) [-1]
 
-this.data <- filter(data, Year == 1990)
-    this.data.long <- this.data %>%
-      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
-      pivot_longer(-"Year", names_to = "variable", values_to = "value")
-    
+#How has the composition of renewable energy production changed over time?
 
-value <- as.numeric(this.data)[-1]
-currentData <- filter(data, Year <= 2015)
-    #create an additional variable (total amount)
-    #create an additional variable (total amount)
-    #currentData$sum <- currentData$Hydro + currentData$Biofuel + currentData$Solar + currentData$Geothermal
-    #adjusting data so we can plot all different types
-  
-    currentData.long <- currentData %>%
-      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
-      pivot_longer(-"Year", names_to = "variable", values_to = "value")
-   
-    
-    #currentData.long$variable <- factor(data$variable , levels=c("Hydro", "Biofuel", "Solar", "Geothermal"))
-    ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
-      geom_area()
+#Get the data for year by year production of renewable energy
+yearbyyear <- read.csv("yearbyyear.csv")
+
+#Rename columns for clearer interpretation
+names(yearbyyear) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
+
+#Store labels
+lbls <- colnames(yearbyyear) [-1]
+
+#Is there a relationship between total energy consumption and renewable energy production?
+renewablebycountry <- read.csv("countrygeneration.csv")
+consumptionbycountry <-read.csv("countryconsumption.csv")
+
+# This next block of code is focusing on areas of interest (country and total renewable energy produced)
+renewablebycountry <- rename(renewablebycountry, "total" = "Total..TWh.")
+renewablebycountry <- select(renewablebycountry, c("Country", "total"))
+
+# the renewablecountry data is from 2017, so we'll just focus on consumption from 2017 as well
+consumptionbycountry <- filter(consumptionbycountry, Year == 2017)
+
+# now we want to configure a table based on this data to match the specifications described above
+Country <- colnames(consumptionbycountry) [-1]
+Consumption <- as.numeric(consumptionbycountry) [-1]
+consumptionbycountry <- data.frame(Country, Consumption)
+
+# now we want to merge these together into one table by country
+CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
     
 ```
-TODO: Add variables to axes, add explanation to click on country option, add titles to graphs
+TODO: Add plot with NoChina, add explanation of plot, Add variables to axes, add explanation to click on country option, add titles to graphs, change from greens to colors to have categorical not implied scale
 ```{r}
 
 ui <- fluidPage(
@@ -95,11 +101,10 @@ server <- function(input, output) {
   
   output$stacked <- renderPlot({
     #filter the data to only include data from 1997 (earliest date in the data) until value
-    currentData <- filter(data, Year <= input$year)
+    currentData <- filter(yearbyyear, Year <= input$year)
     
     #Pivot the data longer, such that each row represents the given energy production for a given source for a certain year
     currentData.long <- currentData %>%
-      select("Year", "Solar", "Biofuel", "Hydro", "Geothermal") %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
     #Order the types of energy appropriately so it is easy to see the growth of all variables
@@ -114,46 +119,59 @@ server <- function(input, output) {
            x = "Year",
            y = "Energy Production (TWh)")
   })
+  
   output$bar <- renderPlot({
-    this.data <- filter(data, Year == input$year)
-  this.data.long <- this.data %>%
-      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
-      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+    #filter the data to only include data from this year (specified by slider)
+    thisyear <- filter(yearbyyear, Year == input$year)
     
-  this.data.long$variable <- factor(this.data.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
-    ggplot(this.data.long, aes(variable, value, fill = variable)) + 
+    #Pivot the data longer, so we have one row of data representing each renewable energy source this year
+    this.year.long <- thisyear %>%
+      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+  
+    #Order the types appropriately
+    this.year.long$variable <- factor(this.year.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
+    
+    #Create the bar plot
+    ggplot(this.year.long, aes(variable, value, fill = variable)) + 
       geom_bar(stat="identity") +
       scale_fill_brewer(palette="Greens")
-    #use scale color manual
   })
+  
   output$pie <- renderPlot({
-    # referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
-    this.data <- filter(data, Year == input$year)
-    this.data.long <- this.data %>%
-      select("Year", "Hydro", "Biofuel", "Solar", "Geothermal") %>%
+    # ggplot technique - referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
+    
+    #filter the data to only include data from this year (specified by slider)
+    thisyear <- filter(yearbyyear, Year == input$year)
+    
+    #Pivot the data longer, so we have one row of data representing each renewable energy source this year
+    this.year.long <- thisyear %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
     
-    this.data.long$variable <- factor(this.data.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
-    ggplot(this.data.long, aes(x="", y=value, fill=variable)) +
+    #Order the types appropriately
+    this.year.long$variable <- factor(this.year.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
+    
+    # ggplot technique - referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
+    # create the plot
+    ggplot(this.year.long, aes(x="", y=value, fill=variable)) +
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
-        x = "", y = "Production in TWh") +
+        x = "", y = "") +
       scale_fill_brewer(palette="Greens")
-    
-    #pie chart
     })
+  
   
   output$scatter <- renderPlot({
-    ggplot(nooutliers, aes(x=Consumption, y=total)) +
+    #create the plot
+    ggplot(CountryRel, aes(x=Consumption, y=total)) +
     geom_point() 
     })
-  
-  ##Playing around with click to display
-  output$info <- renderText({
-    point <- nearPoints(nooutliers, input$plot_click, threshold = 10, maxpoints = 1)
-    if(nrow(point) == 0) return(NULL)
-    paste0("Country name: ", point$Country)
+    
+    #click to display name of country
+    output$info <- renderText({
+      point <- nearPoints(CountryRel, input$plot_click, threshold = 10, maxpoints = 1)
+      if(nrow(point) == 0) return(NULL)
+      paste0("Country name: ", point$Country)
   })
 }
 
