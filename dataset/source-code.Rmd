@@ -74,7 +74,7 @@ consumptionbycountry <- data.frame(Country, Consumption)
 CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
     
 ```
-TODO: Add plot with NoChina, add explanation of plot, Add variables to axes, add explanation to click on country option, add titles to graphs, change from greens to colors to have categorical not implied scale
+TODO: add explanation of plots, add explanation to click on country option, add titles to graphs, change from greens to colors to have categorical not implied scale
 ```{r}
 
 ui <- fluidPage(
@@ -93,7 +93,9 @@ ui <- fluidPage(
   plotOutput("stacked"),
   titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
   titlePanel(h4("Is there a relationship between total energy consumption and renewable energy production? ", align = "center")),
-  plotOutput("scatter", click = "plot_click"),
+  plotOutput("scatterfull", click = "plot_click"),
+  titlePanel(h6("After removing the outlier, China, we can focus on the remaining countries and the potential relationship amongst these countries")),
+  plotOutput("nochina", click = "nc_click"),
   verbatimTextOutput("info")
 )
 
@@ -114,7 +116,8 @@ server <- function(input, output) {
     #Create the plot
     ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
       geom_area() +
-      scale_fill_brewer(palette="Greens") +
+      #Using different hues to demonstrate categorical nature of source
+      scale_fill_brewer(palette="Accent") +
       labs(title=paste("Renewable Energy Production from 1990 to", input$year, sep=" "),
            x = "Year",
            y = "Energy Production (TWh)")
@@ -134,7 +137,9 @@ server <- function(input, output) {
     #Create the bar plot
     ggplot(this.year.long, aes(variable, value, fill = variable)) + 
       geom_bar(stat="identity") +
-      scale_fill_brewer(palette="Greens")
+      scale_fill_brewer(palette="Accent") + 
+      labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
+        x = "Renewable Energy Source", y = "Production (TWh)")
   })
   
   output$pie <- renderPlot({
@@ -157,19 +162,45 @@ server <- function(input, output) {
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
         x = "", y = "") +
-      scale_fill_brewer(palette="Greens")
+      scale_fill_brewer(palette="Accent")
     })
   
   
-  output$scatter <- renderPlot({
+  output$scatterfull <- renderPlot({
+    #noChina
+    noChina <- filter(CountryRel, Country != "China")
+    china <- filter(CountryRel, Country == "China")
     #create the plot
-    ggplot(CountryRel, aes(x=Consumption, y=total)) +
-    geom_point() 
+    ggplot(data=noChina, aes( x=Consumption, y=total)) +
+    geom_point(alpha=0.3) +
+    geom_point(data = china, aes(x=Consumption, y=total), color = 'red') +
+    labs(title=paste("Comparison of total energy consumption and renewable energy production in 2017"),
+        x = "Total Energy Consumption (TWh)", 
+        y = "Renewable Energy Production (TWh)")
     })
     
     #click to display name of country
     output$info <- renderText({
       point <- nearPoints(CountryRel, input$plot_click, threshold = 10, maxpoints = 1)
+      if(nrow(point) == 0) return(NULL)
+      paste0("Country name: ", point$Country)
+  })
+  
+  output$nochina <- renderPlot({
+    #filter the data to exclude China
+    noChina <- filter(CountryRel, Country != "China")
+    
+    #create the plot
+    ggplot(noChina, aes(x=Consumption, y=total)) +
+    geom_point() +
+    labs(title=paste("Comparison of total energy consumption and renewable energy production in 2017 (Excluding China)"),
+        x = "Total Energy Consumption (TWh)", 
+        y = "Renewable Energy Production (TWh)")
+    })
+    
+    #click to display name of country
+    output$info <- renderText({
+      point <- nearPoints(CountryRel, input$nc_click, threshold = 10, maxpoints = 1)
       if(nrow(point) == 0) return(NULL)
       paste0("Country name: ", point$Country)
   })
