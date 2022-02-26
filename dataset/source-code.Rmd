@@ -78,25 +78,33 @@ TODO: add explanation of plots, add explanation to click on country option, add 
 ```{r}
 
 ui <- fluidPage(
-  titlePanel(h1("Exploring Renewable Energy Production from 1997 to 2017", align = "center")), 
-  titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
-  titlePanel(h4("How has the composition of renewable energy changed over time?", align = "center")),
-  sidebarLayout(position = "left",
-                sidebarPanel("Year",
-                             sliderInput(inputId = "year", 
-                             label = "Slide to adjust the year", 
-                             sep = "",
-                             value = 2015, min = 1997, max = 2017)),
-                mainPanel()
+  navbarPage("Exploring Renewable Energy Production",
+  tabPanel("Composition", 
+      titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
+      titlePanel(h4("How has the composition of renewable energy changed over time?", align = "center")),
+      sidebarLayout(position = "left",
+                    sidebarPanel("Year",
+                      sliderInput(inputId = "year", 
+                                  label = "Slide to adjust the year", 
+                                  sep = "",
+                                  value = 2015, min = 1997, max = 2017
+                                  )
+                      ),
+      mainPanel()
+      ),
+      fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
+      plotOutput("stacked")
   ),
-  fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
-  plotOutput("stacked"),
-  titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
-  titlePanel(h4("Is there a relationship between total energy consumption and renewable energy production? ", align = "center")),
-  plotOutput("scatterfull", click = "plot_click"),
-  titlePanel(h6("After removing the outlier, China, we can focus on the remaining countries and the potential relationship amongst these countries")),
-  plotOutput("nochina", click = "nc_click"),
-  verbatimTextOutput("info")
+  tabPanel("Consumption and Production",
+      titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
+      titlePanel(h4("Is there a relationship between total energy consumption and renewable energy production? ", align = "center")),
+      plotOutput("scatterfull", click = "plot_click"),
+      titlePanel(h6("After removing the outlier, China, we can focus on the remaining countries and the potential relationship amongst these countries")),
+      plotOutput("nochina", click = "nc_click"),
+      verbatimTextOutput("info")
+      ),
+  tabPanel("Methods and Sources")
+),
 )
 
 server <- function(input, output) {
