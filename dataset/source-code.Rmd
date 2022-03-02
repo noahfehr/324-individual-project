@@ -90,10 +90,13 @@ ui <- fluidPage(
                                   value = 2015, min = 1997, max = 2017
                                   )
                       ),
-      mainPanel()
+      mainPanel(
+        titlePanel(h6("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select"))
+      )
       ),
       fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
-      plotOutput("stacked")
+      plotOutput("stacked"),
+      titlePanel(h6("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments."))
   ),
   tabPanel("Consumption and Production",
       titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
@@ -147,7 +150,8 @@ server <- function(input, output) {
       geom_bar(stat="identity") +
       scale_fill_brewer(palette="Accent") + 
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
-        x = "Renewable Energy Source", y = "Production (TWh)")
+        x = "Renewable Energy Source", y = "Production (TWh)") + 
+      theme(legend.position = "none")
   })
   
   output$pie <- renderPlot({
@@ -170,7 +174,8 @@ server <- function(input, output) {
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
         x = "", y = "") +
-      scale_fill_brewer(palette="Accent")
+      scale_fill_brewer(palette="Accent") + 
+      theme(legend.position = "left")
     })
   
   
