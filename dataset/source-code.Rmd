@@ -74,40 +74,83 @@ consumptionbycountry <- data.frame(Country, Consumption)
 CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
     
 ```
-TODO: add explanation of plots, add explanation to click on country option, add titles to graphs, change from greens to colors to have categorical not implied scale
+TODO: documentation, update colors
 ```{r}
 
 ui <- fluidPage(
   navbarPage("Exploring Renewable Energy Production",
   tabPanel("Composition", 
       titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
-      titlePanel(h4("How has the composition of renewable energy changed over time?", align = "center")),
-      sidebarLayout(position = "left",
-                    sidebarPanel("Year",
-                      sliderInput(inputId = "year", 
-                                  label = "Slide to adjust the year", 
-                                  sep = "",
-                                  value = 2015, min = 1997, max = 2017
-                                  )
-                      ),
-      mainPanel(
-        titlePanel(h6("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select"))
-      )
+      fluidRow(
+         column(width=2),
+         column(
+           h4("How has the composition of renewable energy changed over time?", align = "center"),
+           h6(p("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select")),
+         width=8, 
+         style="background-color:azure;border-radius:5"),
+         column(width=2)
       ),
-      fluidRow(splitLayout(cellWidths = c("50%", "50%"), plotOutput("pie"), plotOutput("bar"))),
-      plotOutput("stacked"),
-      titlePanel(h6("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments."))
+      fluidRow(
+        column(
+          sidebarLayout(position = "left",
+                        sidebarPanel(
+                          "Year",
+                          sliderInput(inputId = "year", 
+                                      label = "Slide to adjust the year", 
+                                      sep = "",
+                                      value = 2015, min = 1997, max = 2017
+                                      ),
+                          style="background-color:gray85"
+                          ),
+                        mainPanel(
+                          tabsetPanel(
+                            tabPanel("Bar", plotOutput("bar")),
+                            tabPanel("Pie", plotOutput("pie"))
+                          )
+                        )
+          ), 
+          width = 12,
+        )
+      ),
+      fluidRow(
+        column(width=2),
+        column(plotOutput("stacked"), width = 8),
+        column(width=2)
+        ),
+      fluidRow(
+         column(width=2),
+         column(
+           h6(p("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments.")),
+         width=8, 
+         style="background-color:azure;border-radius:5"),
+         column(width=2)
+      )
   ),
   tabPanel("Consumption and Production",
       titlePanel(h3("Renewable Energy Production & Total Energy Consumption", align = "center")),
-      titlePanel(h4("Is there a relationship between total energy consumption and renewable energy production? ", align = "center")),
+      fluidRow(
+         column(width=2),
+         column(
+           h4("Is there a relationship between total energy consumption and renewable energy production?", align = "center"),
+           h6(p("The first scatterplot below highlights China in red, a clear outlier in both total energy consumption and renewable energy production. In order to focus on the relationship between these two variables, we will acknowledge China as an outlier and focus on the remaining countries")),
+         width=8, 
+         style="background-color:azure;border-radius:5"),
+         column(width=2)
+      ),
       plotOutput("scatterfull", click = "plot_click"),
-      titlePanel(h6("After removing the outlier, China, we can focus on the remaining countries and the potential relationship amongst these countries")),
+      fluidRow(
+         column(width=2),
+         column(
+           h6(p("After removing China, we can visualize the relationship between total energy consumption and renewable energy production. Note how certain countries seem to produce more renewable energy than expected (high renewable energy production with relatively low total energy consumption). Click on any point to see which country that point represents. Country names will display under the scatterplot")),
+         width=8, 
+         style="background-color:azure;border-radius:5"),
+         column(width=2)
+      ),
       plotOutput("nochina", click = "nc_click"),
       verbatimTextOutput("info")
       ),
   tabPanel("Methods and Sources")
-),
+)
 )
 
 server <- function(input, output) {
@@ -175,7 +218,7 @@ server <- function(input, output) {
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
         x = "", y = "") +
       scale_fill_brewer(palette="Accent") + 
-      theme(legend.position = "left")
+      theme(legend.position = "right")
     })
   
   
