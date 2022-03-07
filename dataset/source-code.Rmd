@@ -142,14 +142,201 @@ ui <- fluidPage(
          column(width=2),
          column(
            h6(p("After removing China, we can visualize the relationship between total energy consumption and renewable energy production. Note how certain countries seem to produce more renewable energy than expected (high renewable energy production with relatively low total energy consumption). Click on any point to see which country that point represents. Country names will display under the scatterplot")),
-         width=8, 
-         style="background-color:azure;border-radius:5"),
+          width=8, 
+          style="background-color:azure;border-radius:5"),
          column(width=2)
       ),
       plotOutput("nochina", click = "nc_click"),
       verbatimTextOutput("info")
       ),
-  tabPanel("Methods and Sources")
+  tabPanel("Methods and Sources",
+      fluidRow(
+        column(width=2),
+        column(
+          h2("Project Documentation", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Project Purpose", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("     The overarching purpose of this project is to provide users with meaningful visualizations so that they can understand the development of renewable energy production over time and across the globe. While this project will not crease an exhaustive resource for understanding renewable energy production, I do intend it to enhance viewers' background understanding and lay the foundations for further inquiry. Furthermore, I hope these visualizations can present the developments in such a way that users begin to recognize patterns which coincide with historical and current events defining the renewable energy sector over the past twenty years."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Data Description", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("     These visualizations are based on data from multiple datasets, which work effectively together to help achieve the purpose defined above."),
+          width=8
+          ),
+        column(width=2)
+      ), 
+      fluidRow(
+        column(width=2),
+        column(
+          p("(1)	renewablesPowerGeneration97-17 contains the production of renewable energy over the twenty years between 1997 and 2017. Furthermore, it specifies how much of this energy was from hydro, solar & geothermal. Each row represents a single observation (year) and each column represents a single attribute"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      
+      fluidRow(
+        column(width=2),
+        column(
+          p("(2)	top20CountriesPowerGeneration contains the data from 2017 of each of the top 20 countries’ renewable energy generation. Each row is a single observation (country) and each column represents a single attribute."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      
+      fluidRow(
+        column(width=2),
+        column(
+          p("(3)	Country_Consumption_TWH 2 has the total energy consumption for each year, broken up by country. Each row is an observation (year) and each column is a country. Thus, the cells represent the energy consumed by that country each year."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Data Collection", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Users of the Visualization", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("This visualization is intended for a general audience of university students interested in renewable energy development and policy. The information conveyed via this visualization will help to provide these students with perspective, insights, and curiousity for their studies."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Questions to Answer", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("The questions to outline are included on each section; however, they are also included here for complete documentation:"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(1) How has the composition of renewable energy production changed over time? What trends have defined these changes?"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(2) Is there a relationship between total energy consumption and renewable energy production?"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Insights from Data", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Improvements", align="center"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("Although this visualization establishes a strong basis for understanding recent developments in renewable energy policy, there is significant room for further improvements in future work / visualizations:"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(1) This visualization fails to provide significant context for the trends in renewable energy composition. Instead, users are left to view the trends and hypothesize how these came to be. Future studies may incorporate relevant current / historical events as appropriate."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(2) The limitations of these datasets fail to illustrate these trends over longer periods of time or in recent years. Future visualizations could incorporate more comprehensive data"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(3) To better understand the impact of government action on renewable energy, future apps could group countries in the scatterplots by government policies / actions"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(4) Stronger UI design in more flexible frameworks, such as React, would allow for better interactivity / reactivity and thus a more presentable UI"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          h4("Sources / References", align="center"),
+          width=8
+          ),
+        column(width=2)
+      )
+  )
 )
 )
 
@@ -264,23 +451,3 @@ server <- function(input, output) {
 
 shinyApp(ui = ui, server = server)
 ```
-
-
-## R Markdown
-own is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
