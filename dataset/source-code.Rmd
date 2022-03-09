@@ -227,6 +227,14 @@ ui <- fluidPage(
       fluidRow(
         column(width=2),
         column(
+          p("This data was found on Kaggle; however, it was originally collected by and sourced from: Nature-Inspired Optimization Algorithms for Renewable Energy Generation, Distribution and Management—A Comprehensive Review by Vamsi Krishna Reddy Aala Kalananda and Venkata Lakshmi Narayana Komanapalli from Intelligent Paradigms for Smart Grid and Renewable Energy Systems. - 2021. Springer"),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
           h4("Users of the Visualization", align="center"),
           width=8
           ),
@@ -283,6 +291,22 @@ ui <- fluidPage(
       fluidRow(
         column(width=2),
         column(
+          p("(1) Over the two decades represented by this data, total production of renewable energy grew significantly. Within this growth, we can see a significant expansion in energy sources like solar and geothermal energy which represented a tiny portion of total renewable energy in 1997 and now represent a substantial proportion of total renewable energy production."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
+          p("(2) There is a loose positive relationship between total energy consumption and renewable energy production. Obvious outliers to this rule include Brazil and Canada, who produce high amounts of rewewable energy relative to their total energy consumption, and Iran, who produces less than expected."),
+          width=8
+          ),
+        column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(
           h4("Improvements", align="center"),
           width=8
           ),
@@ -299,7 +323,7 @@ ui <- fluidPage(
       fluidRow(
         column(width=2),
         column(
-          p("(1) This visualization fails to provide significant context for the trends in renewable energy composition. Instead, users are left to view the trends and hypothesize how these came to be. Future studies may incorporate relevant current / historical events as appropriate."),
+          p("(1) This visualization fails to provide significant context for the trends in renewable energy composition. Instead, users are left to view the trends and hypothesize how these came to be. Future studies may incorporate relevant current / historical events as appropriate. Enerdata created a visualization in regards to energy consumption and the pandemic that included specific contextual points. Additional visualizations may draw inspiration from this work."),
           width=8
           ),
         column(width=2)
