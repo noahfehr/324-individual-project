@@ -2,7 +2,6 @@
 title: "source-code"
 output: html_document
 ---
-We've got our data in. Now, we want to manipulate these to end up with two tables. One table with country and total energy consumption; the other with country and renewable energy production
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -42,6 +41,7 @@ data <- data.frame(time, value, group)
 library(tidyverse)
 library(ggplot2)
 library(shiny)
+library(shinythemes)
 
 #How has the composition of renewable energy production changed over time?
 
@@ -72,12 +72,13 @@ consumptionbycountry <- data.frame(Country, Consumption)
 
 # now we want to merge these together into one table by country
 CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
-    
+
 ```
 TODO: documentation, update colors
 ```{r}
 
 ui <- fluidPage(
+  theme = shinytheme("superhero"),
   navbarPage("Exploring Renewable Energy Production",
   tabPanel("Composition", 
       titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
@@ -86,8 +87,8 @@ ui <- fluidPage(
          column(
            h4("How has the composition of renewable energy changed over time?", align = "center"),
            h6(p("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select")),
-         width=8, 
-         style="background-color:azure;border-radius:5"),
+         width=8
+         ),
          column(width=2)
       ),
       fluidRow(
@@ -100,7 +101,6 @@ ui <- fluidPage(
                                       sep = "",
                                       value = 2015, min = 1997, max = 2017
                                       ),
-                          style="background-color:gray85"
                           ),
                         mainPanel(
                           tabsetPanel(
@@ -109,7 +109,7 @@ ui <- fluidPage(
                           )
                         )
           ), 
-          width = 12,
+          width = 12
         )
       ),
       fluidRow(
@@ -121,8 +121,8 @@ ui <- fluidPage(
          column(width=2),
          column(
            h6(p("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments.")),
-         width=8, 
-         style="background-color:azure;border-radius:5"),
+         width=8
+         ),
          column(width=2)
       )
   ),
@@ -133,8 +133,8 @@ ui <- fluidPage(
          column(
            h4("Is there a relationship between total energy consumption and renewable energy production?", align = "center"),
            h6(p("The first scatterplot below highlights China in red, a clear outlier in both total energy consumption and renewable energy production. In order to focus on the relationship between these two variables, we will acknowledge China as an outlier and focus on the remaining countries")),
-         width=8, 
-         style="background-color:azure;border-radius:5"),
+         width=8
+         ),
          column(width=2)
       ),
       plotOutput("scatterfull", click = "plot_click"),
@@ -142,8 +142,8 @@ ui <- fluidPage(
          column(width=2),
          column(
            h6(p("After removing China, we can visualize the relationship between total energy consumption and renewable energy production. Note how certain countries seem to produce more renewable energy than expected (high renewable energy production with relatively low total energy consumption). Click on any point to see which country that point represents. Country names will display under the scatterplot")),
-          width=8, 
-          style="background-color:azure;border-radius:5"),
+          width=8
+         ),
          column(width=2)
       ),
       plotOutput("nochina", click = "nc_click"),
