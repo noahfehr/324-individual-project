@@ -5,6 +5,7 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(wordcloud)
 renewablebycountry <- read.csv("countrygeneration.csv")
 consumptionbycountry <-read.csv("countryconsumption.csv")
 
@@ -36,6 +37,7 @@ time <- as.numeric(rep(seq(1,7),each=7))  # x Axis
 value <- runif(49, 10, 100)               # y Axis
 group <- rep(LETTERS[1:7],times=7)        # group, one shape per group
 data <- data.frame(time, value, group)
+wordcloud(words=renewablebycountry$Country, freq = renewablebycountry$total, colors=brewer.pal(8, "Dark2"), scale=c(10,0.75))
 ```
 ```{r}
 library(tidyverse)
@@ -80,6 +82,31 @@ TODO: documentation, update colors
 ui <- fluidPage(
   theme = shinytheme("superhero"),
   navbarPage("Exploring Renewable Energy Production",
+  tabPanel("Overview", 
+      titlePanel(h3("Exploring Renewable Energy Production", align = "center")),
+      fluidRow(
+         column(width=2),
+         column(
+           h4("How has the composition of renewable energy changed over time?", align = "center"),
+           h6(p("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select")),
+         width=8
+         ),
+         column(width=2)
+      ),
+      fluidRow(
+        column(width=2),
+        column(plotOutput("cloud"), width = 8),
+        column(width=2)
+        ),
+      fluidRow(
+         column(width=2),
+         column(
+           h6(p("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments.")),
+         width=8
+         ),
+         column(width=2)
+      )
+  ),
   tabPanel("Composition", 
       titlePanel(h3("Composition of Renewable Energy Production", align = "center")),
       fluidRow(
@@ -386,6 +413,10 @@ server <- function(input, output) {
       labs(title=paste("Renewable Energy Production from 1990 to", input$year, sep=" "),
            x = "Year",
            y = "Energy Production (TWh)")
+  })
+  
+  output$cloud <- renderPlot({
+    wordcloud(words=renewablebycountry$Country, freq = renewablebycountry$total, colors=brewer.pal(8, "Dark2"), , scale=c(10,0.75))
   })
   
   output$bar <- renderPlot({
