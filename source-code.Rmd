@@ -8,43 +8,29 @@ library(ggplot2)
 library(wordcloud)
 library(shiny)
 library(shinythemes)
-
 #### How has renewable production has changed over time
-
 #Get the data for year by year production of renewable energy
 year_by_year <- read.csv("yearbyyear.csv")
-
 #Rename columns for clearer interpretation
 names(year_by_year) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
-
 ### Is there a relationship between total energy consumption and renewable energy production
-
 renewable_by_country <- read.csv("countrygeneration.csv")
 consumption_by_country <-read.csv("countryconsumption.csv")
-
 # This next block of code is focusing on areas of interest (country and total renewable energy produced)
-
-renewable_by_country <- rename(renewable_by_country, "Total Renewable Energy Produced" = "Total..TWh.")
-renewable_by_country <- select(renewable_by_country, c("Country", "Total Renewable Energy Produced"))
-
+renewable_by_country <- rename(renewable_by_country, "total" = "Total..TWh.")
+renewable_by_country <- select(renewable_by_country, c("Country", "total"))
 # the renewablecountry data is from 2017, so we'll just focus on consumption from 2017
-
 consumption_by_country <- filter(consumption_by_country, Year == 2017)
-
 #Configure a data frame with countries and numeric consumption (instead of strings)
-
 Country <- colnames(consumption_by_country) [-1]
 Consumption <- as.numeric(consumption_by_country) [-1]
 consumption_by_country <- data.frame(Country, Consumption)
-
 # now we want to merge these together into one table by country
-
-con_prod_country <- merge (consumptionbycountry, renewablebycountry, by="Country")
-con_prod_country_no <- filter(CountryRel, Country != "China")
+con_prod_country <- merge (consumption_by_country, renewable_by_country, by="Country")
+con_prod_country_no <- filter(con_prod_country, Country != "China")
 ```
 
 ```{r}
-
 ui <- fluidPage(
   theme = shinytheme("superhero"),
   navbarPage("Exploring Renewable Energy Production",
@@ -107,7 +93,6 @@ ui <- fluidPage(
         ),
         column(width=1)
       ),
-
       fluidRow(
          column(width=2),
          column(
@@ -361,12 +346,11 @@ ui <- fluidPage(
   )
 )
 )
-
 server <- function(input, output) {
   output$cloud_production <- renderPlot({
     wordcloud(
-      words=renewablebycountry$Country, 
-      freq = renewablebycountry$total, 
+      words=renewable_by_country$Country, 
+      freq = renewable_by_country$total, 
       colors=brewer.pal(8, "Dark2"), 
       scale=c(8,0.75)
     )
@@ -465,6 +449,5 @@ server <- function(input, output) {
     paste0("Country name: ", point$Country)
   })
 }
-
 shinyApp(ui = ui, server = server)
 ```
