@@ -6,77 +6,43 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(wordcloud)
-renewablebycountry <- read.csv("countrygeneration.csv")
-consumptionbycountry <-read.csv("countryconsumption.csv")
-
-# This next block of code is focusing on areas of interest (country and total renewable energy produced)
-renewablebycountry <- rename(renewablebycountry, "total" = "Total..TWh.")
-renewablebycountry <- select(renewablebycountry, c("Country", "total"))
-
-# the renewablecountry data is from 2017, so we'll just focus on consumption from 2017
-consumptionbycountry <- filter(consumptionbycountry, Year == 2017)
-# now we want to configure a table based on this data to match the specifications described above
-Country <- colnames(consumptionbycountry) [-1]
-Consumption <- as.numeric(consumptionbycountry) [-1]
-consumptionbycountry <- data.frame(Country, Consumption)
-
-# now we want to merge these together into one table by country
-CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
-allCountries <- ggplot(CountryRel, aes(x=Consumption, y=total)) +
-                    geom_point()
-
-nooutliers <- filter(CountryRel, Country != "China" & Country != "Brazil")
-
-#Remove China (outlier)
-noChina <- ggplot(nooutliers, aes(x=Consumption, y=total)) +
-  geom_point() +
-  xlab("Total Energy Consumption") + 
-  ylab("Total Renewable Energy Production") 
-  #geom_text(label=nooutliers$Country, nudge_x = 50) #goal is to have these appear when you hover
-time <- as.numeric(rep(seq(1,7),each=7))  # x Axis
-value <- runif(49, 10, 100)               # y Axis
-group <- rep(LETTERS[1:7],times=7)        # group, one shape per group
-data <- data.frame(time, value, group)
-wordcloud(words=renewablebycountry$Country, freq = renewablebycountry$total, colors=brewer.pal(8, "Dark2"), scale=c(10,0.75))
-```
-```{r}
-library(tidyverse)
-library(ggplot2)
 library(shiny)
 library(shinythemes)
 
-#How has the composition of renewable energy production changed over time?
+#### How has renewable production has changed over time
 
 #Get the data for year by year production of renewable energy
-yearbyyear <- read.csv("yearbyyear.csv")
+year_by_year <- read.csv("yearbyyear.csv")
 
 #Rename columns for clearer interpretation
-names(yearbyyear) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
+names(year_by_year) <- c("Year","Hydro","Biofuel", "Solar", "Geothermal")
 
-#Store labels
-lbls <- colnames(yearbyyear) [-1]
+### Is there a relationship between total energy consumption and renewable energy production
 
-#Is there a relationship between total energy consumption and renewable energy production?
-renewablebycountry <- read.csv("countrygeneration.csv")
-consumptionbycountry <-read.csv("countryconsumption.csv")
+renewable_by_country <- read.csv("countrygeneration.csv")
+consumption_by_country <-read.csv("countryconsumption.csv")
 
 # This next block of code is focusing on areas of interest (country and total renewable energy produced)
-renewablebycountry <- rename(renewablebycountry, "total" = "Total..TWh.")
-renewablebycountry <- select(renewablebycountry, c("Country", "total"))
 
-# the renewablecountry data is from 2017, so we'll just focus on consumption from 2017 as well
-consumptionbycountry <- filter(consumptionbycountry, Year == 2017)
+renewable_by_country <- rename(renewable_by_country, "Total Renewable Energy Produced" = "Total..TWh.")
+renewable_by_country <- select(renewable_by_country, c("Country", "Total Renewable Energy Produced"))
 
-# now we want to configure a table based on this data to match the specifications described above
-Country <- colnames(consumptionbycountry) [-1]
-Consumption <- as.numeric(consumptionbycountry) [-1]
-consumptionbycountry <- data.frame(Country, Consumption)
+# the renewablecountry data is from 2017, so we'll just focus on consumption from 2017
+
+consumption_by_country <- filter(consumption_by_country, Year == 2017)
+
+#Configure a data frame with countries and numeric consumption (instead of strings)
+
+Country <- colnames(consumption_by_country) [-1]
+Consumption <- as.numeric(consumption_by_country) [-1]
+consumption_by_country <- data.frame(Country, Consumption)
 
 # now we want to merge these together into one table by country
-CountryRel <- merge (consumptionbycountry, renewablebycountry, by="Country")
 
+con_prod_country <- merge (consumptionbycountry, renewablebycountry, by="Country")
+con_prod_country_no <- filter(CountryRel, Country != "China")
 ```
-TODO: documentation, update colors
+
 ```{r}
 
 ui <- fluidPage(
@@ -87,22 +53,21 @@ ui <- fluidPage(
       fluidRow(
          column(width=2),
          column(
-           h4("How has the composition of renewable energy changed over time?", align = "center"),
-           h6(p("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select")),
-         width=8
+           h6(p("This interactive R Shiny app is intended to help you visualize and understand developments in renewable energy")),
+           width=8
          ),
          column(width=2)
       ),
       fluidRow(
         column(width=2),
-        column(plotOutput("cloud"), width = 8),
+        column(plotOutput("cloud_production"), width = 8),
         column(width=2)
         ),
       fluidRow(
          column(width=2),
          column(
-           h6(p("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments.")),
-         width=8
+           h6(p("In the word cloud above, see the top twenty producers of renewable energy. The size of each country's name directly corresponds to the quanitity of renewable energy they produced in 2017.")),
+           width=8
          ),
          column(width=2)
       )
@@ -114,11 +79,12 @@ ui <- fluidPage(
          column(
            h4("How has the composition of renewable energy changed over time?", align = "center"),
            h6(p("Use the slider the adjust the year. The bar and pie charts below will display the composition of renewable energy production for this given year. Note how this composition changes from year to year. To recognize trends in composition over time, see the stacked chart below, which will show the renewable energy production from 1997 until the year you select")),
-         width=8
+           width=8
          ),
          column(width=2)
       ),
       fluidRow(
+        column(width=1),
         column(
           sidebarLayout(position = "left",
                         sidebarPanel(
@@ -131,24 +97,22 @@ ui <- fluidPage(
                           ),
                         mainPanel(
                           tabsetPanel(
-                            tabPanel("Bar", plotOutput("bar")),
-                            tabPanel("Pie", plotOutput("pie"))
+                            tabPanel("Bar", plotOutput("bar_composition")),
+                            tabPanel("Pie", plotOutput("pie_composition")),
+                            tabPanel("Stacked since 1990", plotOutput("stacked_composition"))
                           )
                         )
           ), 
-          width = 12
-        )
-      ),
-      fluidRow(
-        column(width=2),
-        column(plotOutput("stacked"), width = 8),
-        column(width=2)
+          width = 10
         ),
+        column(width=1)
+      ),
+
       fluidRow(
          column(width=2),
          column(
            h6(p("By using the slider to manipulate these visualizations, you should begin to understand the developments in renewable energy production over time. The trends illustrated here lay the groundwork for further inquiry, such as how government support / intervention has supported these developments.")),
-         width=8
+           width=8
          ),
          column(width=2)
       )
@@ -160,23 +124,38 @@ ui <- fluidPage(
          column(
            h4("Is there a relationship between total energy consumption and renewable energy production?", align = "center"),
            h6(p("The first scatterplot below highlights China in red, a clear outlier in both total energy consumption and renewable energy production. In order to focus on the relationship between these two variables, we will acknowledge China as an outlier and focus on the remaining countries")),
-         width=8
+           width=8
          ),
          column(width=2)
       ),
-      plotOutput("scatterfull", click = "plot_click"),
+      fluidRow(
+         column(width=2),
+         column(
+           plotOutput("scatterfull", click = "scatter_click"),
+           verbatimTextOutput("scatter_info"),
+           width=8
+         ),
+         column(width=2)
+      ),
       fluidRow(
          column(width=2),
          column(
            h6(p("After removing China, we can visualize the relationship between total energy consumption and renewable energy production. Note how certain countries seem to produce more renewable energy than expected (high renewable energy production with relatively low total energy consumption). Click on any point to see which country that point represents. Country names will display under the scatterplot")),
-          width=8
+           width=8
          ),
          column(width=2)
       ),
-      plotOutput("nochina", click = "nc_click"),
-      verbatimTextOutput("info")
+      fluidRow(
+         column(width=2),
+         column(
+           plotOutput("no_outliers", click = "no_click"),
+           verbatimTextOutput("no_info"),
+           width=8
+         ),
+         column(width=2)
+      )
       ),
-  tabPanel("Methods and Sources",
+  tabPanel("Basic Documentation",
       fluidRow(
         column(width=2),
         column(
@@ -270,7 +249,7 @@ ui <- fluidPage(
       fluidRow(
         column(width=2),
         column(
-          p("This visualization is intended for a general audience of university students interested in renewable energy development and policy. The information conveyed via this visualization will help to provide these students with perspective, insights, and curiousity for their studies."),
+          p("This visualization is intended for a general audience of university students interested in renewable energy development and policy. The information conveyed via this visualization will help to provide these students with perspective, insights, and curiosity for their studies."),
           width=8
           ),
         column(width=2)
@@ -326,7 +305,7 @@ ui <- fluidPage(
       fluidRow(
         column(width=2),
         column(
-          p("(2) There is a loose positive relationship between total energy consumption and renewable energy production. Obvious outliers to this rule include Brazil and Canada, who produce high amounts of rewewable energy relative to their total energy consumption, and Iran, who produces less than expected."),
+          p("(2) There is a loose positive relationship between total energy consumption and renewable energy production. Obvious outliers to this rule include Brazil and Canada, who produce high amounts of renewable energy relative to their total energy consumption, and Iran, who produces less than expected."),
           width=8
           ),
         column(width=2)
@@ -378,129 +357,112 @@ ui <- fluidPage(
           width=8
           ),
         column(width=2)
-      ),
-      fluidRow(
-        column(width=2),
-        column(
-          h4("Sources / References", align="center"),
-          width=8
-          ),
-        column(width=2)
       )
   )
 )
 )
 
 server <- function(input, output) {
-  
-  output$stacked <- renderPlot({
-    #filter the data to only include data from 1997 (earliest date in the data) until value
-    currentData <- filter(yearbyyear, Year <= input$year)
-    
-    #Pivot the data longer, such that each row represents the given energy production for a given source for a certain year
-    currentData.long <- currentData %>%
-      pivot_longer(-"Year", names_to = "variable", values_to = "value")
-    
-    #Order the types of energy appropriately so it is easy to see the growth of all variables
-    #Note that we will maintain this ordering for all of the charts illustrating composition to keep the colors consistent across the board
-    currentData.long$variable <- factor(currentData.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
-    
-    #Create the plot
-    ggplot(currentData.long, aes(x=Year, y=value, fill=variable)) + 
-      geom_area() +
-      #Using different hues to demonstrate categorical nature of source
-      scale_fill_brewer(palette="Accent") +
-      labs(title=paste("Renewable Energy Production from 1990 to", input$year, sep=" "),
-           x = "Year",
-           y = "Energy Production (TWh)")
+  output$cloud_production <- renderPlot({
+    wordcloud(
+      words=renewablebycountry$Country, 
+      freq = renewablebycountry$total, 
+      colors=brewer.pal(8, "Dark2"), 
+      scale=c(8,0.75)
+    )
   })
   
-  output$cloud <- renderPlot({
-    wordcloud(words=renewablebycountry$Country, freq = renewablebycountry$total, colors=brewer.pal(8, "Dark2"), , scale=c(10,0.75))
-  })
-  
-  output$bar <- renderPlot({
+  output$bar_composition <- renderPlot({
     #filter the data to only include data from this year (specified by slider)
-    thisyear <- filter(yearbyyear, Year == input$year)
-    
+    cur_year <- filter(year_by_year, Year == input$year)
     #Pivot the data longer, so we have one row of data representing each renewable energy source this year
-    this.year.long <- thisyear %>%
+    cur_year_long <- cur_year %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
-  
     #Order the types appropriately
-    this.year.long$variable <- factor(this.year.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
-    
+    cur_year_long$variable <- factor(cur_year_long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
     #Create the bar plot
-    ggplot(this.year.long, aes(variable, value, fill = variable)) + 
+    ggplot(cur_year_long, aes(variable, value, fill = variable)) + 
       geom_bar(stat="identity") +
       scale_fill_brewer(palette="Accent") + 
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
-        x = "Renewable Energy Source", y = "Production (TWh)") + 
+        x = "Renewable Energy Source", y = "Renewable Energy Production (TWh)") + 
       theme(legend.position = "none")
   })
   
-  output$pie <- renderPlot({
-    # ggplot technique - referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
-    
-    #filter the data to only include data from this year (specified by slider)
-    thisyear <- filter(yearbyyear, Year == input$year)
-    
-    #Pivot the data longer, so we have one row of data representing each renewable energy source this year
-    this.year.long <- thisyear %>%
+  output$pie_composition <- renderPlot({
+    # filter the data to only include data from this year (specified by slider)
+    cur_year <- filter(year_by_year, Year == input$year)
+    # pivot the data longer, so we have one row of data representing each renewable energy source this year
+    cur_year_long <- cur_year %>%
       pivot_longer(-"Year", names_to = "variable", values_to = "value")
-    
-    #Order the types appropriately
-    this.year.long$variable <- factor(this.year.long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
-    
+    # order the types appropriately
+    cur_year_long$variable <- factor(cur_year_long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
     # ggplot technique - referenced https://www.r-graph-gallery.com/piechart-ggplot2.html
-    # create the plot
-    ggplot(this.year.long, aes(x="", y=value, fill=variable)) +
+    ggplot(cur_year_long, aes(x="", y=value, fill=variable)) +
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       labs(title=paste("Composition of renewable energy production in", input$year, sep=" "),
         x = "", y = "") +
       scale_fill_brewer(palette="Accent") + 
-      theme(legend.position = "right")
+      theme(legend.position = "right") +
+      guides(fill=guide_legend(title="Renewable Energy Source"))
     })
   
-  
+    output$stacked_composition <- renderPlot({
+    #filter the data to only include data from 1997 (earliest date in the data) until value
+    rel_years <- filter(year_by_year, Year <= input$year)
+    # pivot the data longer, so we have one row of data representing each renewable energy source this year
+    rel_years_long <- rel_years %>%
+      pivot_longer(-"Year", names_to = "variable", values_to = "value")
+    # order the types appropriately
+    rel_years_long$variable <- factor(rel_years_long$variable, levels = c("Hydro", "Biofuel", "Geothermal", "Solar"))
+    ggplot(rel_years_long, aes(x=Year, y=value, fill=variable)) + 
+      geom_area() +
+      #Using different hues to demonstrate categorical nature of source
+      scale_fill_brewer(palette="Accent") +
+      labs(title=paste("Renewable Energy Production from 1990 to", input$year, sep=" "),
+           x = "Year",
+           y = "Renewable Energy Production (TWh)"
+      ) +
+      theme(legend.position = "right") +
+      guides(fill=guide_legend(title="Renewable Energy Source"))
+  })
+    
   output$scatterfull <- renderPlot({
-    #noChina
-    noChina <- filter(CountryRel, Country != "China")
-    china <- filter(CountryRel, Country == "China")
-    #create the plot
-    ggplot(data=noChina, aes( x=Consumption, y=total)) +
-    geom_point(alpha=0.3) +
-    geom_point(data = china, aes(x=Consumption, y=total), color = 'red') +
-    labs(title=paste("Comparison of total energy consumption and renewable energy production in 2017"),
+    # select China so we can highlight it in the plot
+    china <- filter(con_prod_country, Country == "China")
+    ggplot(data=con_prod_country_no, aes( x=Consumption, y=total)) +
+      geom_point(alpha=0.3) +
+      geom_point(data = china, aes(x=Consumption, y=total), color = 'red') +
+      labs(
+        title="Comparison of total energy consumption and renewable energy production in 2017",
         x = "Total Energy Consumption (TWh)", 
-        y = "Renewable Energy Production (TWh)")
+        y = "Renewable Energy Production (TWh)"
+      )
     })
     
-    #click to display name of country
-    output$info <- renderText({
-      point <- nearPoints(CountryRel, input$plot_click, threshold = 10, maxpoints = 1)
-      if(nrow(point) == 0) return(NULL)
-      paste0("Country name: ", point$Country)
+  # scatter plot of total energy consumption and renewable energy production (all countries)
+  output$scatter_info <- renderText({
+    point <- nearPoints(con_prod_country, input$scatter_click, threshold = 10, maxpoints = 1)
+    if(nrow(point) == 0) return(NULL)
+    paste0("Country name: ", point$Country)
   })
   
-  output$nochina <- renderPlot({
-    #filter the data to exclude China
-    noChina <- filter(CountryRel, Country != "China")
-    
-    #create the plot
-    ggplot(noChina, aes(x=Consumption, y=total)) +
-    geom_point() +
-    labs(title=paste("Comparison of total energy consumption and renewable energy production in 2017 (Excluding China)"),
+  # scatter plot of total energy consumption and renewable energy production (no outliers)
+  output$no_outliers <- renderPlot({
+    ggplot(con_prod_country_no, aes(x=Consumption, y=total)) +
+      geom_point() +
+      labs(
+        title=paste("Comparison of total energy consumption and renewable energy production in 2017"),
         x = "Total Energy Consumption (TWh)", 
         y = "Renewable Energy Production (TWh)")
     })
     
-    #click to display name of country
-    output$info <- renderText({
-      point <- nearPoints(CountryRel, input$nc_click, threshold = 10, maxpoints = 1)
-      if(nrow(point) == 0) return(NULL)
-      paste0("Country name: ", point$Country)
+    #click to display name of country (no outliers)
+  output$no_info <- renderText({
+    point <- nearPoints(con_prod_country, input$no_click, threshold = 10, maxpoints = 1)
+    if(nrow(point) == 0) return(NULL)
+    paste0("Country name: ", point$Country)
   })
 }
 
